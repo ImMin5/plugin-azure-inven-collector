@@ -20,7 +20,7 @@ postgresql_servers_info_meta = ItemDynamicLayout.set_fields('PostgreSQL Servers'
         'safe': ['Ready'],
         'warning': ['Disabled', 'Dropping', 'Inaccessible']
     }),
-    TextDyField.data_source('Region', 'data.location'),
+    TextDyField.data_source('Location', 'data.location'),
     TextDyField.data_source('Subscription', 'data.subscription_name'),
     TextDyField.data_source('Subscription ID', 'account'),
     TextDyField.data_source('Server Name', 'data.fully_qualified_domain_name'),
