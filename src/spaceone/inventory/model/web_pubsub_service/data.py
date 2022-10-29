@@ -42,10 +42,11 @@ class SystemData(Model):
 # PrivateEndpointConnection - PrivateEndpoint
 class PrivateEndpoint(Model):
     id = StringType(serialize_when_none=False)
+    private_endpoint_name_display = StringType(serialize_when_none=False)
 
 
 # PrivateEndpointConnection - PrivateLinkServiceConnectionState
-class PrivateLinkServiceConnectionState:
+class PrivateLinkServiceConnectionState(Model):
     status = StringType(choices=('Approved', 'Disconnected', 'Pending', 'Rejected'))
     description = StringType(serialize_when_none=False)
     actions_required = StringType(serialize_when_none=False)
@@ -60,7 +61,7 @@ class PrivateEndpointConnection(Model):
                                              'Succeeded', 'Unknown', 'Updating'))
     private_endpoint = ModelType(PrivateEndpoint)
     group_ids = ListType(StringType, serialize_when_none=False)
-    private_link_service_connection_state = ModelType(PrivateEndpoint)
+    private_link_service_connection_state = ModelType(PrivateLinkServiceConnectionState)
 
 
 # SharedPrivateLinkResource
@@ -92,7 +93,7 @@ class LiveTraceCategory(Model):
 
 class LiveTraceConfiguration(Model):
     enabled = StringType(serialize_when_none=False)
-    categories = ListType(ModelType(LiveTraceCategory))
+    categories = ListType(ModelType(LiveTraceCategory), serialize_when_none=False)
 
 
 # ResourceLogConfiguration
@@ -104,7 +105,7 @@ class ResourceLogCategory(Model):
 
 
 class ResourceLogConfiguration(Model):
-    categories = ListType(ModelType(ResourceLogCategory))
+    categories = ListType(ModelType(ResourceLogCategory), serialize_when_none=False)
 
 
 # WebPubSubNetworkACLs
@@ -117,21 +118,78 @@ class NetworkACL(Model):
 
 # WebPubSubNetworkACLs - PrivateEndpointACL
 class PrivateEndpointACL(Model):
-    allow = ListType(StringType)
-    deny = ListType(StringType)
-    name = StringType()
+    allow = ListType(StringType, serialize_when_none=False)
+    deny = ListType(StringType, serialize_when_none=False)
+    name = StringType(serialize_when_none=False)
 
 
 class WebPubSubNetworkACLs(Model):
     default_action = StringType(serialize_when_none=False)
     public_network = ModelType(NetworkACL)
-    private_endpoints = ListType(ModelType(PrivateEndpointACL))
+    private_endpoints = ListType(ModelType(PrivateEndpointACL), serialize_when_none=False)
+
+
+# WebPubSubHub
+
+# WebPubSubHub- WebPubSubNetworkACLs- UpstreamAuthSettings - ManagedIdentitySettings
+class ManagedIdentitySettings(Model):
+    resource = StringType(serialize_when_none=False)
+
+
+# WebPubSubHub- WebPubSubNetworkACLs- UpstreamAuthSettings
+class UpstreamAuthSettings(Model):
+    type = StringType(serialize_when_none=False)
+    managed_identity = ModelType(ManagedIdentitySettings)
+
+
+# WebPubSubHub - WebPubSubHubProperties - EventHandler
+class EventHandler(Model):
+    url_template = StringType(serialize_when_none=False)
+    user_event_pattern = StringType(serialize_when_none=False)
+    system_events = ListType(StringType, serialize_when_none=False)
+    auth = ModelType(UpstreamAuthSettings)
+
+
+# WebPubSubHub - WebPubSubHubProperties
+class WebPubSubHubProperties(Model):
+    event_handlers = ListType(ModelType(EventHandler))
+    anonymous_connect_policy = StringType(default='deny', choices=('allow', 'deny'))
+
+
+class WebPubSubHub(AzureCloudService):
+    id = StringType()
+    name = StringType()
+    location = StringType()
+    type = StringType(serialize_when_none=False)
+    system_data = ModelType(SystemData)
+    properties = ModelType(WebPubSubHubProperties)
+    web_pubsub_svc_name = StringType(serialize_when_none=False)
+    web_pubsub_hub_evnet_handler_count_display = IntType(default=0)
+
+    def reference(self):
+        return {
+            "resource_id": self.id,
+            "external_link": f"https://portal.azure.com/#@.onmicrosoft.com/resource{self.id}/overview",
+        }
+
+
+# CustomDomain
+class CustomDomain(Model):
+    pass
+
+
+# WebPubSubKeys
+class WebPubSubKey(Model):
+    primary_key = StringType(serialize_when_none=False)
+    primary_connection_string = StringType(serialize_when_none=False)
+    secondary_key = StringType(serialize_when_none=False)
+    secondary_connection_string = StringType(serialize_when_none=False)
 
 
 class WebPubSubService(AzureCloudService):  # Main Class
-    id = StringType(serialize_when_none=False)
-    name = StringType(serialize_when_none=False)
-    location = StringType(serialize_when_none=False)
+    id = StringType()
+    name = StringType()
+    location = StringType()
     sku = ModelType(SkuResource, serialize_when_none=False)
     identity = ModelType(ManagedIdentity, serialize_when_none=False)
     system_data = ModelType(SystemData, serialize_when_none=False)
@@ -139,8 +197,8 @@ class WebPubSubService(AzureCloudService):  # Main Class
                                              'Succeeded', 'Unknown', 'Updating'))
     external_ip = StringType(serialize_when_none=False)
     host_name = StringType(serialize_when_none=False)
-    public_port = IntType(serialize_when_none=False)
-    server_port = IntType(serialize_when_none=False)
+    public_port = StringType(serialize_when_none=False)
+    server_port = StringType(serialize_when_none=False)
     version = StringType(serialize_when_none=False)
     private_endpoint_connections = ListType(ModelType(PrivateEndpointConnection))
     shared_private_link_resources = ListType(ModelType(SharedPrivateLinkResource))
@@ -148,9 +206,14 @@ class WebPubSubService(AzureCloudService):  # Main Class
     host_name_prefix = StringType(serialize_when_none=False)
     live_trace_configuration = ModelType(LiveTraceConfiguration)
     resource_log_configuration = ModelType(ResourceLogConfiguration)
+    network_ac_ls = ModelType(WebPubSubNetworkACLs)
     public_network_access = StringType(default='Enabled')
     disable_local_auth = BooleanType(default=False)
     disable_aad_auth = BooleanType(default=False)
+    web_pubsub_hubs = ListType(ModelType(WebPubSubHub))
+    web_pubsub_hub_count_display = IntType(default=0)
+    custom_domains = ListType(ModelType(CustomDomain))  # not yet supported
+    web_pubsub_key = ModelType(WebPubSubKey)
 
     def reference(self):
         return {

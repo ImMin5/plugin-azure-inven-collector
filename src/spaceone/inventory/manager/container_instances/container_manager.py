@@ -81,8 +81,9 @@ class ContainerInstancesManager(AzureManager):
                     'gpu_count_display': _gpu_count_display,
                     'memory_size_display': _memory_size_display
                 })
-
                 container_instance_data = ContainerInstance(container_instance_dict, strict=False)
+
+                # Update resource info of Container Instance
                 container_instance_resource = ContainerInstanceResource({
                     'name': container_instance_data.name,
                     'account': container_instance_dict['subscription_id'],
