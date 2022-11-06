@@ -102,11 +102,10 @@ public_network_access_control_rules = ItemDynamicLayout.set_fields('Public netwo
     ListDyField.data_source('Allow', 'data.network_ac_ls.public_network.allow', options={'delimiter': ','})
 ])
 
-private_endpoint_connections_access_control_rules = TableDynamicLayout.set_fields('Private endpoint connections',
-                                                                                  root_path='data.network_ac_ls.private_endpoints' ,fields=[
-        TextDyField.data_source('Connection name', 'name'),
-        ListDyField.data_source('Allow', 'allow',  options={'delimiter': ', '})
-    ])
+private_endpoint_connections_access_control_rules = TableDynamicLayout.set_fields('Private endpoint connections', root_path='data.network_ac_ls.private_endpoints', fields=[
+    TextDyField.data_source('Connection name', 'name'),
+    ListDyField.data_source('Allow', 'allow',  options={'delimiter': ', '})
+])
 
 web_pubsub_svc_access_control_rules_info = ListDynamicLayout.set_layouts(' Access control rules', layouts=[
     default_action_access_control_rules, public_network_access_control_rules,
@@ -123,11 +122,35 @@ web_pub_sub_svc_system_data_info = ItemDynamicLayout.set_fields('System data', r
     TextDyField.data_source('Last modified by type', 'last_modified_by_type'),
 ])
 
-# TAB - Custom domain is not yet supported
+
+# TAB - Custom Certificates
+web_pubsub_svc_custom_certificate_info = TableDynamicLayout.set_fields('Custom certificate', root_path='data.custom_domains', fields=[
+    TextDyField.data_source('Name', 'name'),
+    TextDyField.data_source('Key Vault Base URI', 'key_vault_base_uri'),
+    TextDyField.data_source('Key Vault Secret Name', 'key_vault_secret_name'),
+    TextDyField.data_source('Key Vault Secret Version', 'key_vault_secret_version'),
+    EnumDyField.data_source('Provisioning State', 'provisioning_state', default_state={
+        'safe': ['Running', 'Succeeded', ],
+        'warning': ['Creating', 'Deleting', 'Moving', 'Updating'],
+        'alert': ['Canceled', 'Failed', ],
+        'disable': ['Unknown']}),
+])
+# TAB - Custom domain
+web_pubsub_svc_custom_domain_info = TableDynamicLayout.set_fields('Custom domain', root_path='data.custom_certificates', fields=[
+    TextDyField.data_source('Name', 'name'),
+    TextDyField.data_source('Domain Name', 'domain_name'),
+    TextDyField.data_source('Certificate Name', 'custom_certificate_name_display'),
+    EnumDyField.data_source('Provisioning State', 'provisioning_state', default_state={
+        'safe': ['Running', 'Succeeded', ],
+        'warning': ['Creating', 'Deleting', 'Moving', 'Updating'],
+        'alert': ['Canceled', 'Failed', ],
+        'disable': ['Unknown']}),
+])
 
 web_pubsub_service_meta = CloudServiceMeta.set_layouts(
     [web_pubsub_svc_info_meta, web_pubsub_svc_keys_info, web_pubsub_svc_hubs_info, web_pubsub_svc_public_access_info,
-     web_pubsub_svc_private_access_info, web_pubsub_svc_access_control_rules_info, web_pub_sub_svc_system_data_info])
+     web_pubsub_svc_private_access_info, web_pubsub_svc_custom_certificate_info, web_pubsub_svc_custom_domain_info,
+     web_pubsub_svc_access_control_rules_info, web_pub_sub_svc_system_data_info])
 
 
 class ApplicationIntegrationResource(CloudServiceResource):

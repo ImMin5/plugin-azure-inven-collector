@@ -174,8 +174,22 @@ class WebPubSubHub(AzureCloudService):
 
 
 # CustomDomain
+
+# CustomDomain - ResourceReference
+class ResourceReference(Model):
+    id = StringType(serialize_when_none=False)
+
+
 class CustomDomain(Model):
-    pass
+    id = StringType(serialize_when_none=False)
+    name = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+    system_data = ModelType(SystemData)
+    provisioning_state = StringType(choices=('Canceled', 'Creating', 'Deleting', 'Failed', 'Moving', 'Running',
+                                             'Succeeded', 'Unknown', 'Updating'))
+    domain_name = StringType(serialize_when_none=False)
+    custom_certificate = ModelType(ResourceReference)
+    custom_certificate_name_display = StringType(serialize_when_none=False)
 
 
 # WebPubSubKeys
@@ -184,6 +198,19 @@ class WebPubSubKey(Model):
     primary_connection_string = StringType(serialize_when_none=False)
     secondary_key = StringType(serialize_when_none=False)
     secondary_connection_string = StringType(serialize_when_none=False)
+
+
+# CustomCertificate
+class CustomCertificate(Model):
+    id = StringType()
+    name = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+    system_data = ModelType(SystemData)
+    provisioning_state = StringType(choices=('Canceled', 'Creating', 'Deleting', 'Failed', 'Moving', 'Running',
+                                             'Succeeded', 'Unknown', 'Updating'))
+    key_vault_base_uri = StringType(serialize_when_none=False)
+    key_vault_secret_name = StringType(serialize_when_none=False)
+    key_vault_secret_version = StringType(serialize_when_none=False)
 
 
 class WebPubSubService(AzureCloudService):  # Main Class
@@ -214,6 +241,7 @@ class WebPubSubService(AzureCloudService):  # Main Class
     web_pubsub_hub_count_display = IntType(default=0)
     custom_domains = ListType(ModelType(CustomDomain))  # not yet supported
     web_pubsub_key = ModelType(WebPubSubKey)
+    custom_certificates = ListType(ModelType(CustomCertificate))
 
     def reference(self):
         return {

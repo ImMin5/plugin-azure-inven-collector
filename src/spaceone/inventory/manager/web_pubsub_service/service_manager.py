@@ -73,6 +73,14 @@ class WebPubSubServiceManager(AzureManager):
                 web_pubsub_key = web_pubsub_service_conn.list_keys(resource_group_name=resource_group_name,
                                                                    resource_name=resource_name)
 
+                # Add Web PubSub Custom Domain in data
+                web_pubsub_custom_domains = web_pubsub_service_conn.list_custom_domains(resource_group_name=resource_group_name,
+                                                                                        resource_name=resource_name)
+                web_pubsub_custom_domains = self.set_certificate_name_in_custom_domain(web_pubsub_custom_domains)
+
+                # Add Web PubSub Custom Certificates in data
+                web_pubsub_custom_certificates = web_pubsub_service_conn.list_custom_certificates(resource_group_name=resource_group_name,
+                                                                                                  resource_name=resource_name)
                 web_pubsub_service_dict.update({
                     'resource_group': resource_group_name,
                     'subscription_id': subscription_info['subscription_id'],
@@ -80,7 +88,9 @@ class WebPubSubServiceManager(AzureManager):
                     'azure_monitor': {'resource_id': web_pubsub_service_id},
                     'web_pubsub_hubs': web_pubsub_hub_datas,
                     'web_pubsub_hub_count_display': len(web_pubsub_hub_datas),
-                    'web_pubsub_key': WebPubSubKey(self.convert_nested_dictionary(web_pubsub_key), strict=False)
+                    'web_pubsub_key': self.convert_nested_dictionary(web_pubsub_key),
+                    'custom_domains': web_pubsub_custom_domains,
+                    'custom_certificates': [self.convert_nested_dictionary(custom_certi) for custom_certi in web_pubsub_custom_certificates]
                 })
 
                 web_pubsub_service_data = WebPubSubService(web_pubsub_service_dict, strict=False)
@@ -141,6 +151,17 @@ class WebPubSubServiceManager(AzureManager):
                 error_responses.append(error_response)
         return web_pubsub_hub_responses, error_responses
 
+    def set_certificate_name_in_custom_domain(self, custom_domains):
+        custom_domains_dict = []
+        for custom_domain in custom_domains:
+            custom_domain_dict = self.convert_nested_dictionary(custom_domain)
+            if custom_certificate := custom_domain_dict.get('custom_certificate', {}):
+                custom_domain_dict.update({
+                    'custom_certificate_name_display': custom_certificate['id'].split('/')[-1]
+                })
+            custom_domains_dict.append(custom_domain_dict)
+        return custom_domains_dict
+
     @staticmethod
     def get_resource_name_from_id(dict_id):
         resource_name = dict_id.split('/')[-1]
@@ -150,5 +171,6 @@ class WebPubSubServiceManager(AzureManager):
     def get_web_pubsub_name_from_id(dict_id):
         svc_name = dict_id.split('/')[-3]
         return svc_name
+
 
 
