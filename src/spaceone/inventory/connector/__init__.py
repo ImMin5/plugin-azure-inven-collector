@@ -19,3 +19,4 @@ from spaceone.inventory.connector.sql_servers import SQLServersConnector
 from spaceone.inventory.connector.sql_databases import SQLDatabasesConnector
 from spaceone.inventory.connector.container_instances import ContainerInstancesConnector
 from spaceone.inventory.connector.web_pubsub_service import WebPubSubServiceConnector
+from spaceone.inventory.connector.function_app import FunctionAppConnector
