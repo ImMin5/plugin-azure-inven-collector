@@ -1,6 +1,7 @@
 import os
 import logging
 
+from spaceone.core.connector import BaseConnector
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.resource import ResourceManagementClient
@@ -15,7 +16,7 @@ from azure.mgmt.cosmosdb import CosmosDBManagementClient
 from azure.mgmt.rdbms.postgresql import PostgreSQLManagementClient
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.mgmt.webpubsub import WebPubSubManagementClient
-from spaceone.core.connector import BaseConnector
+from azure.mgmt.web import WebSiteManagementClient
 
 DEFAULT_SCHEMA = 'azure_client_secret'
 _LOGGER = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class AzureConnector(BaseConnector):
         self.postgre_sql_client = None
         self.container_instance_client = None
         self.web_pubsub_service_client = None
+        self.function_app_client = None
 
     def set_connect(self, secret_data):
         subscription_id = secret_data['subscription_id']
@@ -76,6 +78,7 @@ class AzureConnector(BaseConnector):
         self.postgre_sql_client = PostgreSQLManagementClient(credential=credential, subscription_id=subscription_id)
         self.container_instance_client = ContainerInstanceManagementClient(credential=credential, subscription_id=subscription_id)
         self.web_pubsub_service_client = WebPubSubManagementClient(credential=credential, subscription_id=subscription_id)
+        self.function_app_client = WebSiteManagementClient(credential=credential, subscription_id=subscription_id)
 
     def verify(self, **kwargs):
         self.set_connect(kwargs['secret_data'])
