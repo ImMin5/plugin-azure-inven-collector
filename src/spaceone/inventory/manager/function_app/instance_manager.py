@@ -3,10 +3,11 @@ import logging
 from spaceone.inventory.libs.manager import AzureManager
 from spaceone.inventory.libs.schema.base import ReferenceModel
 from spaceone.core.utils import *
-from spaceone.inventory.model.web_pubsub_service.cloud_service_type import CLOUD_SERVICE_TYPES
+from spaceone.inventory.model.function_app.cloud_service_type import CLOUD_SERVICE_TYPES
 from spaceone.inventory.connector.function_app.connector import FunctionAppConnector
 
 from spaceone.inventory.model.function_app.data import *
+from spaceone.inventory.model.function_app.cloud_service import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,12 +47,34 @@ class FunctionAppManager(AzureManager):
             function_app_id = ''
             try:
                 function_app_dict = self.convert_nested_dictionary(function_app)
-                import pprint
-                pprint.pprint(function_app_dict)
+                function_app_id = function_app_dict['id']
+                resource_group_name = self.get_resource_group_from_id(function_app_id)
 
-                function_app_data = FunctionApp()
+                # Update data info of Function App
+                function_app_dict.update({
+                    'resource_group': resource_group_name,
+                    'subscription_id': subscription_info['subscription_id'],
+                    'subscription_name': subscription_info['subscription_name'],
+                    'azure_monitor': {'resource_id': function_app_id},
+                })
+
+                function_app_data = Site(function_app_dict, strict=False)
+
+                # Update resource info of Function App
+                function_app_resource = FunctionAppResource({
+                    'name': function_app_data.name,
+                    'account': function_app_dict['subscription_id'],
+                    'data': function_app_data,
+                    'tags': function_app_dict.get('tags', {}),
+                    'region_code': function_app_data.location,
+                    'reference': ReferenceModel(function_app_data.reference())
+                })
+                self.set_region_code(function_app_data.location)
+                function_app_responses.append(FunctionAppResponse({'resource': function_app_resource}))
             except Exception as e:
-                print(e)
+                _LOGGER.error(f'[list_instances] {function_app_id} {e}', exc_info=True)
+                error_response = self.generate_resource_error_response(e, 'Instance', 'FunctionApp', function_app_id)
+                error_responses.append(error_response)
 
         _LOGGER.debug(f'** Function App Service Finished {time.time() - start_time} Seconds **')
         return function_app_responses, error_responses
