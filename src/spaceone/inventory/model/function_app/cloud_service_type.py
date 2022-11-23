@@ -21,7 +21,7 @@ cst_function_app.labels = ['Compute']
 cst_function_app.is_major = True
 cst_function_app.is_primary = True
 cst_function_app.tags = {
-    'spaceone:icon': '',
+    'spaceone:icon': 'https://spaceone-custom-assets.s3.ap-northeast-2.amazonaws.com/console-assets/icons/cloud-services/azure/azure-function-app.svg',
 }
 
 cst_function_app._metadata = CloudServiceTypeMeta.set_meta(
