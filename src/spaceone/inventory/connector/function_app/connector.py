@@ -13,3 +13,6 @@ class FunctionAppConnector(AzureConnector):
 
     def list(self):
         return self.function_app_client.web_apps.list()
+
+    def list_functions(self, resource_group_name, name):
+        return self.function_app_client.web_apps.list_functions(resource_group_name=resource_group_name, name=name)

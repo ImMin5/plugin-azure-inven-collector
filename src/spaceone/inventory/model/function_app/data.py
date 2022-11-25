@@ -291,14 +291,14 @@ class SiteConfig(Model):
     machine_key = ModelType(SiteMachineKey)
 
 
-# Site - HostingEnvironmentProfile
+# FunctionApp - HostingEnvironmentProfile
 class HostingEnvironmentProfile(Model):
     id = StringType(serialize_when_none=False)
     name = StringType(serialize_when_none=False)
     type = StringType(serialize_when_none=False)
 
 
-# Site - CloningInfo
+# FunctionApp - CloningInfo
 class CloningInfo(Model):
     correlation_id = StringType(serialize_when_none=False)
     overwrite = BooleanType(serialize_when_none=False)
@@ -313,10 +313,65 @@ class CloningInfo(Model):
     traffic_manager_profile_name = StringType(serialize_when_none=False)
 
 
-class Site(AzureCloudService):
+# FunctionApp - SlotSwapStatus
+class SlotSwapStatus(Model):
+    timestamp_utc = DateTimeType(serialize_when_none=False)
+    source_slot_name = StringType(serialize_when_none=False)
+    destination_slot_name = StringType(serialize_when_none=False)
+
+
+# FunctionApp - FunctionEnvelope
+
+# FunctionApp - FunctionEnvelope - Config
+class Config(Model):
+    bindings = ListType(DictType(StringType))
+    scriptFile = StringType(serialize_when_none=False)
+
+
+class FunctionEnvelope(Model):
+    id = StringType(serialize_when_none=False)
+    name = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+    kind = StringType(serialize_when_none=False)
+    function_app_id = StringType(serialize_when_none=False)
+    script_root_path_href = StringType(serialize_when_none=False)
+    script_href = StringType(serialize_when_none=False)
+    config_href = StringType(serialize_when_none=False)
+    test_data_href = StringType(serialize_when_none=False)
+    secrets_file_href = StringType(serialize_when_none=False)
+    href = StringType(serialize_when_none=False)
+    # config = ModelType(Config)
+    files = DictType(StringType, serialize_when_none=False)
+    test_data = StringType(serialize_when_none=False)
+    invoke_url_template = StringType(serialize_when_none=False)
+    language = StringType(serialize_when_none=False)
+    is_disabled = BooleanType(serialize_when_none=False)
+
+
+# In Azure this class is FunctionApp
+class FunctionApp(AzureCloudService):
     id = StringType(serialize_when_none=False)
     name = StringType(serialize_when_none=False)
     location = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+    state = StringType(serialize_when_none=False)
+    resource_group = StringType(serialize_when_none=False)
+    host_names = ListType(StringType)
+    repository_site_name = StringType(serialize_when_none=False)
+    usage_state = StringType(choices=['EXCEEDED', 'NORMAL'])
+    enabled_host_names = ListType(StringType)
+    availability_state = StringType(choices=['DISASTER_RECOVERY_MODE', 'LIMITED', 'NORMAL'])
+    last_modified_time_utc = DateTimeType(serialize_when_none=False)
+    traffic_manager_host_names = ListType(StringType)
+    target_swap_slot = StringType(serialize_when_none=False)
+    outbound_ip_addresses = StringType(serialize_when_none=False)
+    possible_outbound_ip_addresses = StringType(serialize_when_none=False)
+    suspended_till = DateTimeType(serialize_when_none=False)
+    max_number_of_workers = IntType(serialize_when_none=False)
+    is_default_container = BooleanType(serialize_when_none=False)
+    default_host_name = StringType(serialize_when_none=False)
+    slot_swap_status = ModelType(SlotSwapStatus)
+    in_progress_operation_id = StringType(serialize_when_none=False)
     kind = StringType(serialize_when_none=False)
     identity = ModelType(ManagedServiceIdentity)
     extended_location = ModelType(ExtendedLocation)
@@ -343,6 +398,9 @@ class Site(AzureCloudService):
     storage_account_required = BooleanType(serialize_when_none=False)
     key_vault_reference_identity = StringType(serialize_when_none=False)
     virtual_network_subnet_id = StringType(serialize_when_none=False)
+    os_system_display = StringType(serialize_when_none=False)
+    app_service_plan_display = StringType(serialize_when_none=False)
+    functions = ListType(ModelType(FunctionEnvelope))
 
     def reference(self):
         return {

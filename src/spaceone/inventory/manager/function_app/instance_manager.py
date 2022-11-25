@@ -50,16 +50,30 @@ class FunctionAppManager(AzureManager):
                 function_app_id = function_app_dict['id']
                 resource_group_name = self.get_resource_group_from_id(function_app_id)
 
+                # list
+                functions = function_app_conn.list_functions(resource_group_name, name=function_app_dict['name'])
+                functions_data = [self.convert_nested_dictionary(function) for function in functions]
+
+                for f in functions_data:
+                    import pprint
+                    pprint.pprint(f)
+
                 # Update data info of Function App
                 function_app_dict.update({
                     'resource_group': resource_group_name,
                     'subscription_id': subscription_info['subscription_id'],
                     'subscription_name': subscription_info['subscription_name'],
                     'azure_monitor': {'resource_id': function_app_id},
+                    'os_system_display': self._get_os_system_from_kind(function_app_dict.get('kind', None)),
+                    'app_service_plan_display': self._get_app_service_plan_from_server_farm_id(
+                        function_app_dict.get('server_farm_id', None)),
+                    'functions': functions_data
                 })
 
-                function_app_data = Site(function_app_dict, strict=False)
+                function_app_data = FunctionApp(function_app_dict, strict=False)
 
+                import pprint
+                pprint.pprint(function_app_dict)
                 # Update resource info of Function App
                 function_app_resource = FunctionAppResource({
                     'name': function_app_data.name,
@@ -78,3 +92,13 @@ class FunctionAppManager(AzureManager):
 
         _LOGGER.debug(f'** Function App Service Finished {time.time() - start_time} Seconds **')
         return function_app_responses, error_responses
+
+    @staticmethod
+    def _get_os_system_from_kind(kind):
+        if kind is not None:
+            return kind.split(',')[1]
+
+    @staticmethod
+    def _get_app_service_plan_from_server_farm_id(server_farm_id):
+        if server_farm_id is not None:
+            return server_farm_id.split('/')[-1]
