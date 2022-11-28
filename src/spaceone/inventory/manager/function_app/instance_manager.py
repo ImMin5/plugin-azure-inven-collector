@@ -30,8 +30,6 @@ class FunctionAppManager(AzureManager):
             Response:
                 CloudServiceResponse (list) : list of azure function app data resource information
                 ErrorResourceResponse (list) : list of error resource information
-
-
         """
 
         _LOGGER.debug(f'** Function App START **')
@@ -43,6 +41,10 @@ class FunctionAppManager(AzureManager):
         function_app_conn: FunctionAppConnector = self.locator.get_connector(self.connector_name, **params)
         function_apps = function_app_conn.list()
 
+        # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-application-settings#code-try-0
+        # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-configurations#code-try-0
+        # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-slots#code-try-0
+
         for function_app in function_apps:
             function_app_id = ''
             try:
@@ -50,13 +52,24 @@ class FunctionAppManager(AzureManager):
                 function_app_id = function_app_dict['id']
                 resource_group_name = self.get_resource_group_from_id(function_app_id)
 
-                # list
+                # Functions in Function App
                 functions = function_app_conn.list_functions(resource_group_name, name=function_app_dict['name'])
-                functions_data = [self.convert_nested_dictionary(function) for function in functions]
+                functions_dict = [self.convert_nested_dictionary(function) for function in functions]
 
-                for f in functions_data:
-                    import pprint
-                    pprint.pprint(f)
+                for function_dict in functions_dict:
+                    function_dict.update({
+                        'name_display': self._get_function_name_from_id(function_dict['id']),
+                        'status_display': self._convert_status_from_is_disabled(function_dict['is_disabled'])
+                    })
+
+                # Deployment slot in Function App
+                slots = function_app_conn.list_slots(resource_group_name, name=function_app_dict['name'])
+                for d in slots:
+                    print(f'deployment {d}')
+
+                # for f in functions_dict:
+                #     import pprint
+                #     pprint.pprint(f)
 
                 # Update data info of Function App
                 function_app_dict.update({
@@ -67,13 +80,15 @@ class FunctionAppManager(AzureManager):
                     'os_system_display': self._get_os_system_from_kind(function_app_dict.get('kind', None)),
                     'app_service_plan_display': self._get_app_service_plan_from_server_farm_id(
                         function_app_dict.get('server_farm_id', None)),
-                    'functions': functions_data
+                    'functions': functions_dict,
+                    'functions_count_display': len(functions_dict),
                 })
 
                 function_app_data = FunctionApp(function_app_dict, strict=False)
 
-                import pprint
-                pprint.pprint(function_app_dict)
+                # import pprint
+                # pprint.pprint(function_app_dict)
+
                 # Update resource info of Function App
                 function_app_resource = FunctionAppResource({
                     'name': function_app_data.name,
@@ -102,3 +117,11 @@ class FunctionAppManager(AzureManager):
     def _get_app_service_plan_from_server_farm_id(server_farm_id):
         if server_farm_id is not None:
             return server_farm_id.split('/')[-1]
+
+    @staticmethod
+    def _get_function_name_from_id(function_id):
+        return function_id.split('/')[-1]
+
+    @staticmethod  # need code review
+    def _convert_status_from_is_disabled(is_disabled):
+        return 'Disabled' if is_disabled else 'Enabled'

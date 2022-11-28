@@ -320,14 +320,22 @@ class SlotSwapStatus(Model):
     destination_slot_name = StringType(serialize_when_none=False)
 
 
-# FunctionApp - FunctionEnvelope
+# FunctionApp - FunctionEnvelope - Config - Bindings
+class Bindings(Model):
+    authLevel = StringType(serialize_when_none=False)
+    direction = StringType(serialize_when_none=False)
+    methods = ListType(StringType)
+    name = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+
 
 # FunctionApp - FunctionEnvelope - Config
 class Config(Model):
-    bindings = ListType(DictType(StringType))
+    bindings = ListType(ModelType(Bindings))
     scriptFile = StringType(serialize_when_none=False)
 
 
+# FunctionApp - FunctionEnvelope
 class FunctionEnvelope(Model):
     id = StringType(serialize_when_none=False)
     name = StringType(serialize_when_none=False)
@@ -340,12 +348,14 @@ class FunctionEnvelope(Model):
     test_data_href = StringType(serialize_when_none=False)
     secrets_file_href = StringType(serialize_when_none=False)
     href = StringType(serialize_when_none=False)
-    # config = ModelType(Config)
+    config = ModelType(Config)
     files = DictType(StringType, serialize_when_none=False)
     test_data = StringType(serialize_when_none=False)
     invoke_url_template = StringType(serialize_when_none=False)
     language = StringType(serialize_when_none=False)
     is_disabled = BooleanType(serialize_when_none=False)
+    name_display = StringType(serialize_when_none=False)
+    status_display = StringType(serialize_when_none=False)
 
 
 # In Azure this class is FunctionApp
@@ -401,6 +411,7 @@ class FunctionApp(AzureCloudService):
     os_system_display = StringType(serialize_when_none=False)
     app_service_plan_display = StringType(serialize_when_none=False)
     functions = ListType(ModelType(FunctionEnvelope))
+    functions_count_display = IntType(default=0)
 
     def reference(self):
         return {
