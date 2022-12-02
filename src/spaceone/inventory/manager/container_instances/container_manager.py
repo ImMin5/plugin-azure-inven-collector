@@ -132,7 +132,6 @@ class ContainerInstancesManager(AzureManager):
                             'mount_path': volume_mount['mount_path'],
                             'container_name': container['name']
                         })
-                        return
 
     @staticmethod
     def _get_gpu_count_display(container):

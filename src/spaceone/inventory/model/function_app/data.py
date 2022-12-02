@@ -327,12 +327,28 @@ class Bindings(Model):
     methods = ListType(StringType)
     name = StringType(serialize_when_none=False)
     type = StringType(serialize_when_none=False)
+    path = StringType(serialize_when_none=False)
+    connection = StringType(serialize_when_none=False)
+    schedule = StringType(serialize_when_none=False)
+
 
 
 # FunctionApp - FunctionEnvelope - Config
 class Config(Model):
     bindings = ListType(ModelType(Bindings))
     scriptFile = StringType(serialize_when_none=False)
+
+
+# FunctionApp - FunctionEnvelope - Config Display
+class ConfigDisplay(Model):
+    name = StringType(serialize_when_none=False)
+    authLevel = StringType(serialize_when_none=False)
+    connection = StringType(serialize_when_none=False)
+    request_type = StringType(serialize_when_none=False)
+    request_method = ListType(StringType)
+    response_type = StringType(serialize_when_none=False)
+    details = StringType(serialize_when_none=False)
+    details_show = StringType(default="show")
 
 
 # FunctionApp - FunctionEnvelope
@@ -356,9 +372,23 @@ class FunctionEnvelope(Model):
     is_disabled = BooleanType(serialize_when_none=False)
     name_display = StringType(serialize_when_none=False)
     status_display = StringType(serialize_when_none=False)
+    config_display = ModelType(ConfigDisplay)
 
 
-# In Azure this class is FunctionApp
+# FunctionApp - DeploymentSlot
+class DeploymentSlot(Model):
+    id = StringType(serialize_when_none=False)
+    name = StringType(serialize_when_none=False)
+    location = StringType(serialize_when_none=False)
+    state = StringType(serialize_when_none=False)
+    enabled_host_names = ListType(StringType)
+    host_names = ListType(StringType)
+    kind = StringType(serialize_when_none=False)
+    os_system_display = StringType(serialize_when_none=False)
+    app_service_plan_display = StringType(serialize_when_none=False)
+
+
+# In Azure this class is Site
 class FunctionApp(AzureCloudService):
     id = StringType(serialize_when_none=False)
     name = StringType(serialize_when_none=False)
@@ -412,6 +442,7 @@ class FunctionApp(AzureCloudService):
     app_service_plan_display = StringType(serialize_when_none=False)
     functions = ListType(ModelType(FunctionEnvelope))
     functions_count_display = IntType(default=0)
+    deployment_slots = ListType(ModelType(DeploymentSlot))
 
     def reference(self):
         return {

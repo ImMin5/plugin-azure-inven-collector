@@ -1,3 +1,4 @@
+import json
 import time
 import logging
 from spaceone.inventory.libs.manager import AzureManager
@@ -56,20 +57,28 @@ class FunctionAppManager(AzureManager):
                 functions = function_app_conn.list_functions(resource_group_name, name=function_app_dict['name'])
                 functions_dict = [self.convert_nested_dictionary(function) for function in functions]
 
+
                 for function_dict in functions_dict:
+                    import pprint
+                    pprint.pprint(function_dict)
                     function_dict.update({
                         'name_display': self._get_function_name_from_id(function_dict['id']),
-                        'status_display': self._convert_status_from_is_disabled(function_dict['is_disabled'])
+                        'status_display': self._convert_status_from_is_disabled(function_dict['is_disabled']),
+                        'config_display': self._make_config_dict_display(function_dict['config'])
                     })
 
                 # Deployment slot in Function App
-                slots = function_app_conn.list_slots(resource_group_name, name=function_app_dict['name'])
-                for d in slots:
-                    print(f'deployment {d}')
+                deployment_slots = function_app_conn.list_slots(resource_group_name, name=function_app_dict['name'])
 
-                # for f in functions_dict:
-                #     import pprint
-                #     pprint.pprint(f)
+                deployment_slots_dict = [self.convert_nested_dictionary(deployment_slot)
+                                         for deployment_slot in deployment_slots]
+
+                for deployment_slot_dict in deployment_slots_dict:
+                    deployment_slot_dict.update({
+                        'os_system_display': self._get_os_system_from_kind(deployment_slot_dict.get('kind', None)),
+                        'app_service_plan_display': self._get_app_service_plan_from_server_farm_id(
+                            deployment_slot_dict.get('server_farm_id', None))
+                    })
 
                 # Update data info of Function App
                 function_app_dict.update({
@@ -82,12 +91,10 @@ class FunctionAppManager(AzureManager):
                         function_app_dict.get('server_farm_id', None)),
                     'functions': functions_dict,
                     'functions_count_display': len(functions_dict),
+                    'deployment_slots': deployment_slots_dict
                 })
 
                 function_app_data = FunctionApp(function_app_dict, strict=False)
-
-                # import pprint
-                # pprint.pprint(function_app_dict)
 
                 # Update resource info of Function App
                 function_app_resource = FunctionAppResource({
@@ -125,3 +132,20 @@ class FunctionAppManager(AzureManager):
     @staticmethod  # need code review
     def _convert_status_from_is_disabled(is_disabled):
         return 'Disabled' if is_disabled else 'Enabled'
+
+    @staticmethod
+    def _make_config_dict_display(config):
+        config_display_dict = {}
+        config_bindings = config.get('bindings')
+        config_display_dict.update({
+            'name': config_bindings[0].get('name', None),
+            'authLevel': config_bindings[0].get('authLevel', None),
+            'request_type': config_bindings[0].get('type', None),
+            'request_method': config_bindings[0].get('methods', []),
+            'details': json.dumps(config)  # need refactoring
+        })
+        if len(config_bindings) > 1:
+            config_display_dict.update({
+                'response_type': config_bindings[1].get('type', None)
+            })
+        return config_display_dict

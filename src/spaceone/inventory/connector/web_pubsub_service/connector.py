@@ -21,3 +21,6 @@ class WebPubSubServiceConnector(AzureConnector):
     def list_keys(self, resource_group_name, resource_name):
         return self.web_pubsub_service_client.web_pub_sub.list_keys(resource_group_name=resource_group_name,
                                                                     resource_name=resource_name)
+
+    def list_custom_domains(self, resource_group_name, resource_name):
+        return self.web_pubsub_service_client.web_pubsub_custom_domains.list()
