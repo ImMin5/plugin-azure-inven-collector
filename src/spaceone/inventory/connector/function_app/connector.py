@@ -19,3 +19,9 @@ class FunctionAppConnector(AzureConnector):
 
     def list_slots(self, resource_group_name, name):
         return self.function_app_client.web_apps.list_slots(resource_group_name=resource_group_name, name=name)
+
+    def get_configuration(self, resource_group_name, name):
+        return self.function_app_client.web_apps.get_configuration(resource_group_name=resource_group_name, name=name)
+
+    def list_metadata(self, resource_group_name, name):
+        return self.function_app_client.web_apps.list_metadata(resource_group_name=resource_group_name, name=name)

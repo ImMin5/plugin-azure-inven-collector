@@ -42,6 +42,7 @@ class FunctionAppManager(AzureManager):
         function_app_conn: FunctionAppConnector = self.locator.get_connector(self.connector_name, **params)
         function_apps = function_app_conn.list()
 
+
         # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-application-settings#code-try-0
         # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-configurations#code-try-0
         # https://learn.microsoft.com/en-us/rest/api/appservice/web-apps/list-slots#code-try-0
@@ -52,17 +53,20 @@ class FunctionAppManager(AzureManager):
                 function_app_dict = self.convert_nested_dictionary(function_app)
                 function_app_id = function_app_dict['id']
                 resource_group_name = self.get_resource_group_from_id(function_app_id)
+                function_app_name = self._get_function_name_from_id(function_app_id)
 
+                import pprint
+                print('========')
+                pprint.pprint(function_app_dict)
+                print('========')
                 # Functions in Function App
                 functions = function_app_conn.list_functions(resource_group_name, name=function_app_dict['name'])
                 functions_dict = [self.convert_nested_dictionary(function) for function in functions]
 
 
                 for function_dict in functions_dict:
-                    import pprint
-                    pprint.pprint(function_dict)
                     function_dict.update({
-                        'name_display': self._get_function_name_from_id(function_dict['id']),
+                        'name_display': function_app_name,
                         'status_display': self._convert_status_from_is_disabled(function_dict['is_disabled']),
                         'config_display': self._make_config_dict_display(function_dict['config'])
                     })
@@ -80,6 +84,23 @@ class FunctionAppManager(AzureManager):
                             deployment_slot_dict.get('server_farm_id', None))
                     })
 
+                # Metadata in Function App for Deployment center
+                deployment_center = function_app_conn.list_metadata(resource_group_name=resource_group_name,
+                                                                    name=function_app_name)
+                deployment_center_dict = self.convert_nested_dictionary(deployment_center)
+                if uri := deployment_center_dict.get('properties', {}).get('CloneUri', None):
+                    deployment_center_dict.update({
+                        'github_id_display': self._get_github_id_from_uri(uri),
+                        'github_repository_name_display': self._get_github_repo_name_from_uri(uri)
+                    })
+
+
+
+                # Configurations in Function App
+                function_app_configuration = function_app_conn.get_configuration(resource_group_name=resource_group_name,
+                                                                                 name=function_app_name)
+
+
                 # Update data info of Function App
                 function_app_dict.update({
                     'resource_group': resource_group_name,
@@ -91,7 +112,9 @@ class FunctionAppManager(AzureManager):
                         function_app_dict.get('server_farm_id', None)),
                     'functions': functions_dict,
                     'functions_count_display': len(functions_dict),
-                    'deployment_slots': deployment_slots_dict
+                    'deployment_slots': deployment_slots_dict,
+                    'configuration': self.convert_nested_dictionary(function_app_configuration),
+                    'deployment_center': deployment_center_dict
                 })
 
                 function_app_data = FunctionApp(function_app_dict, strict=False)
@@ -149,3 +172,11 @@ class FunctionAppManager(AzureManager):
                 'response_type': config_bindings[1].get('type', None)
             })
         return config_display_dict
+
+    @staticmethod
+    def _get_github_id_from_uri(uri):
+        return uri.split('/')[-2]
+
+    @staticmethod
+    def _get_github_repo_name_from_uri(uri):
+        return uri.split('/')[-1]

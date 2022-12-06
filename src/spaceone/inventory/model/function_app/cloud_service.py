@@ -2,7 +2,7 @@ from schematics.types import ModelType, StringType, PolyModelType, FloatType, Da
 from spaceone.inventory.model.function_app.data import FunctionApp
 from spaceone.inventory.libs.schema.metadata.dynamic_field import TextDyField, EnumDyField, ListDyField, DateTimeDyField\
     , MoreField
-from spaceone.inventory.libs.schema.metadata.dynamic_layout import ItemDynamicLayout, TableDynamicLayout
+from spaceone.inventory.libs.schema.metadata.dynamic_layout import ItemDynamicLayout, TableDynamicLayout, ListDynamicLayout
 from spaceone.inventory.libs.schema.cloud_service import CloudServiceResource, CloudServiceResponse, CloudServiceMeta
 
 '''
@@ -41,7 +41,7 @@ functions_info_meta = TableDynamicLayout.set_fields('Functions', root_path='data
     MoreField.data_source('Details', 'details_show', options={
         'sub_key': 'details',
         'layout': {
-            'name': 'Definition',
+            'name': 'Details',
             'type': 'popup',
             'options': {
                 'layout': {
@@ -66,10 +66,22 @@ deployment_slots_info_meta = TableDynamicLayout.set_fields('Deployments slots', 
     TextDyField.data_source('Region', 'location')
 ])
 
+# TAB - Deployment Center
+deployment_center_info_meta = TableDynamicLayout.set_fields('Deployment Center', root_path='data', fields=[
+    TextDyField.data_source('Source', 'configuration.scm_type'),
+    TextDyField.data_source('Signed in as', 'deployment_center.github_id_display'),
+    # TextDyField.data_source('Organization')
+])
 # TAB - Configuration
-configuration_info_meta =
+configuration_app_settings = TableDynamicLayout.set_fields('Application settings', fields=[
+#    TextDyField.data_source('Name',)
+])
+configuration_info_meta = ListDynamicLayout.set_layouts('Configuration', layouts=[
 
+])
 
+# TAB - CORS
+cors_info_meta = ItemDynamicLayout.set_fields('CORS', )
 function_app_meta = CloudServiceMeta.set_layouts(
     [function_app_info_meta])
 

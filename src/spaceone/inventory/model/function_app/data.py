@@ -246,12 +246,13 @@ class SiteConfig(Model):
     document_root = StringType(serialize_when_none=False)
     scm_type = StringType(choices=['BITBUCKET_GIT', 'BITBUCKET_HG', 'CODE_PLEX_GIT', 'CODE_PLEX_HG', 'DROPBOX',
                                    'EXTERNAL_GIT', 'EXTERNAL_HG', 'GIT_HUB', 'LOCAL_GIT', 'NONE', 'ONE_DRIVE', 'TFS',
-                                   'VSO', 'VSTSRM'])
+                                   'VSO', 'VSTSRM', 'GitHubAction'])
     use32_bit_worker_process = BooleanType(serialize_when_none=False)
     web_sockets_enabled = BooleanType(serialize_when_none=False)
     always_on = BooleanType(serialize_when_none=False)
     java_version = StringType(serialize_when_none=False)
     java_container = StringType(serialize_when_none=False)
+    java_container_version = StringType(serialize_when_none=False)
     app_command_line = StringType(serialize_when_none=False)
     managed_pipeline_mode = StringType(choices=['CLASSIC', 'INTEGRATED'])
     virtual_applications = ListType(ModelType(VirtualApplication))
@@ -332,7 +333,6 @@ class Bindings(Model):
     schedule = StringType(serialize_when_none=False)
 
 
-
 # FunctionApp - FunctionEnvelope - Config
 class Config(Model):
     bindings = ListType(ModelType(Bindings))
@@ -386,6 +386,22 @@ class DeploymentSlot(Model):
     kind = StringType(serialize_when_none=False)
     os_system_display = StringType(serialize_when_none=False)
     app_service_plan_display = StringType(serialize_when_none=False)
+
+
+# FunctionApp - Configuration
+class SiteConfigResource(SiteConfig):
+    pass
+
+
+# FunctionApp - StringDictionary
+class StringDictionary(Model):
+    id = StringType(serialize_when_none=False)
+    name = StringType(serialize_when_none=False)
+    type = StringType(serialize_when_none=False)
+    kind = StringType(serialize_when_none=False)
+    properties = DictType(StringType)
+    github_id_display = StringType(serialize_when_none=False)
+    github_repository_name_display = StringType(serialize_when_none=False)
 
 
 # In Azure this class is Site
@@ -443,6 +459,8 @@ class FunctionApp(AzureCloudService):
     functions = ListType(ModelType(FunctionEnvelope))
     functions_count_display = IntType(default=0)
     deployment_slots = ListType(ModelType(DeploymentSlot))
+    configuration = ModelType(SiteConfigResource)
+    deployment_center = ModelType(StringDictionary)
 
     def reference(self):
         return {
