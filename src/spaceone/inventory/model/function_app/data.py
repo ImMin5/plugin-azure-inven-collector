@@ -400,8 +400,9 @@ class StringDictionary(Model):
     type = StringType(serialize_when_none=False)
     kind = StringType(serialize_when_none=False)
     properties = DictType(StringType)
-    github_id_display = StringType(serialize_when_none=False)
-    github_repository_name_display = StringType(serialize_when_none=False)
+    repository_id_display = StringType(serialize_when_none=False)
+    repository_name_display = StringType(serialize_when_none=False)
+    repository_display = StringType(serialized_name=False)
 
 
 # In Azure this class is Site
@@ -459,8 +460,8 @@ class FunctionApp(AzureCloudService):
     functions = ListType(ModelType(FunctionEnvelope))
     functions_count_display = IntType(default=0)
     deployment_slots = ListType(ModelType(DeploymentSlot))
-    configuration = ModelType(SiteConfigResource)
     deployment_center = ModelType(StringDictionary)
+    configuration = ModelType(SiteConfigResource)
 
     def reference(self):
         return {

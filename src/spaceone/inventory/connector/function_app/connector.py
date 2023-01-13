@@ -25,3 +25,7 @@ class FunctionAppConnector(AzureConnector):
 
     def list_metadata(self, resource_group_name, name):
         return self.function_app_client.web_apps.list_metadata(resource_group_name=resource_group_name, name=name)
+
+    def list_metadata_slot(self, resource_group_name, name, slot_name):
+        return self.function_app_client.web_apps.list_metadata_slot(resource_group_name=resource_group_name, name=name,
+                                                                    slot=slot_name)
