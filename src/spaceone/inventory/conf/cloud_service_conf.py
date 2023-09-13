@@ -14,6 +14,7 @@ CLOUD_SERVICE_GROUP_MAP = {
     'KeyVaults': 'KeyVaultsManager',
     'LoadBalancers': 'LoadBalancersManager',
     'MySQLServers': 'MySQLServersManager',
+    'SSHKeys': 'SSHKeysManager',
     'SQLServers': 'SQLServersManager',
     'SQLDatabases': 'SQLDatabasesManager',
     'NATGateways': 'NATGatewaysManager',
@@ -25,5 +26,5 @@ CLOUD_SERVICE_GROUP_MAP = {
     'VirtualMachines': 'VirtualMachinesManager',
     'VirtualNetworks': 'VirtualNetworksManager',
     'VMScaleSets': 'VmScaleSetsManager',
-    'WebPubSubService': 'WebPubSubServiceManager',
+    'WebPubSubService': 'WebPubSubServiceManager'
 }

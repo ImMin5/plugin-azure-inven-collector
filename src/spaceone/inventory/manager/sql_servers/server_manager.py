@@ -35,7 +35,7 @@ class SQLServersManager(AzureManager):
                ErrorResourceResponse (list) : list of error resource information
 
         """
-        _LOGGER.debug(f'** SQL Servers START **')
+        _LOGGER.debug('** SQL Servers START **')
         start_time = time.time()
 
         subscription_info = params['subscription_info']
